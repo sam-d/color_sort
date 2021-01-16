@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <link rel="manifest" href="color_sort.webmanifest" >
+        <title>My Ball Sort game</title></head>
+    <body style="background:#ebeff2">
+        <p><b>Level 1</b></p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="250px" style="border: 3px solid" ></svg>
+        <br/>
+        <button onclick="reset()">Reset</button>
+    </body>
+    <script>
+     canvas=document.querySelector('svg');
+     state = []; //2D array represents state
+     //load level from localStorage or start a level 1
+     if(!localStorage.getItem('level')){
+         level=1; 
+     }else{
+         level = parseInt(localStorage.getItem('level'));
+     }
+     numberBallsPerBin=4 //max number of balls each bin can hold
+     numberBins = 7; //total number of bins
+     colors=["red","green","blue","cyan","pink","black","brown"]; //array of all possible colors
+     //get the actual width of the svg element and scale accordingly
+     w = window.innerWidth - 50; //canvas.width.baseVal.value;
+     //adapt size of balls to screen width
+     if(w > 1000){
+         circleDia = 90;
+     }else if (w > 500){
+         circleDia = 50;
+     }else{
+         circleDia = 20;
+     }
+     padding = 2;
+     boxWidth=circleDia+padding;//xoffset;
+     yoffset=5;
+     xoffset = (w - (boxWidth * numberBins)) / (numberBins + 2);
+     boxHeight = circleDia*numberBallsPerBin+numberBallsPerBin*yoffset+2*yoffset;
+     canvas.setAttribute("height",boxHeight+2*yoffset);
+     selected=-1; //which bin is selected, -1 if none selected
+     //function to generate game state from level number
+     //needs to ensure there are numberBallsPerBin of each color and that the levels is solveable
+     //start with winning state, then permute balls for several rounds
+     function generateState(lvl){
+         //source:https://stackoverflow.com/a/19303725
+         //random numbers with seed
+         let seed = lvl;
+         function random() {
+             var x = Math.sin(seed++) * 10000;
+             return x - Math.floor(x);
+         };
+         //source:https://www.w3docs.com/snippets/javascript/how-to-randomize-shuffle-a-javascript-array.html
+         //Fisher-Yates shuffle
+         function shuffleArray(array) {
+             let curId = array.length;
+             // There remain elements to shuffle
+             while (0 !== curId) {
+                 // Pick a remaining element
+                 let randId = Math.floor(random() * curId);
+                 curId -= 1;
+                 // Swap it with the current element.
+                 let tmp = array[curId];
+                 array[curId] = array[randId];
+                 array[randId] = tmp;
+             }
+             return array;
+         }
+         let bins=numberBins;
+         let empty=2;
+         array=[];
+         //generate complete 'won' game state, then shuffle and distribute to state
+         for(let i=0;i<=(bins-empty);i++){
+             for(let j=0;j<numberBallsPerBin;j++){
+                 array.push(colors[i]);
+             }
+         }
+         array=shuffleArray(array);
+         //put into state
+         state = []; //clear state
+         for(let i=0;i<=(bins-empty);i++){
+             state.push([]);
+             for(let j=0;j<numberBallsPerBin;j++){
+                 state[i][j] = array[i*(bins-empty-1)+j];
+             }
+         }
+         //add empty bins
+         for(let i=0;i<empty;i++){state.push([]);}
+     };
+     function highlightBox(i){
+         if(selected === -1){
+             selected=i;
+             drawState();
+         }else{
+             action(i);
+             if(isWon()){nextLevel();}
+         }
+     }
+     //game action: move ball from selected bin to clicked bin
+     function action(i){
+         if(i == selected){
+             //clicked on same bin again; unselect
+             selected = -1;
+         }else{
+             //valid move if color of top ball in bin 'i' is same as the top bal in bin 'selected'
+             //and there is still a spot free. Or the target bin is empty
+             if((state[i].length < numberBallsPerBin && state[i][state[i].length-1] === state[selected][state[selected].length-1]) || state[i].length === 0){
+                 //do move and redraw state
+                 state[i].push(state[selected][state[selected].length-1]); //add to new bin
+                 state[selected].pop(); //remove from other
+                 selected = -1; //reset selection
+             }else{
+                 //reject move. Here just unselect bin
+                 selected = -1;
+             };
+         }
+         drawState();
+     }
+     //check if game is won
+     function isWon(){
+         for(let i=0;i<state.length;i++){
+             if(state[i].length === 0) continue; //go over empty bins
+             for(let j=0;j<state[i].length;j++){
+                 if(state[i][j] !== state[i][0]){return false;}; //if any color mismatch
+             }
+         }
+         return true; //no mismatch
+     }
+     //anmation to move to next level
+     function nextLevel(){
+         //TODO animate
+         level = level + 1;
+         //save to storage
+         localStorage.setItem('level',level);
+         generateState(level);
+         drawState();
+     };
+     //draw game state
+     function drawState() {
+         document.body.querySelector('b').innerHTML = "Level " + level;
+         //clear canvas first
+         while (canvas.firstChild) {
+             canvas.removeChild(canvas.firstChild);
+         };
+         //then draw the state array onto screen
+         for(let i=0; i<state.length; i++){
+             //draw container as simple rect
+             let box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+             box.setAttribute("x",i*boxWidth+(i+1)*xoffset);
+             box.setAttribute("y",yoffset);
+             box.setAttribute("width",boxWidth);
+             box.setAttribute("height",boxHeight);
+             box.setAttribute("stroke",selected == i ? "yellow" : "black");
+             box.setAttribute("strokeWidth","1px");
+             box.setAttribute("fill","transparent");
+             box.addEventListener('click',function(){highlightBox(i)},false);
+             canvas.appendChild(box);
+             for(let j=0;j<state[i].length;j++){
+                 let circle =document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                 circle.setAttribute("r",circleDia/2);
+                 circle.setAttribute("cx",i*boxWidth+boxWidth/2+(i+1)*xoffset);
+                 circle.setAttribute("cy",boxHeight-(j*circleDia+(j+1)*yoffset+circleDia/2)); //draw from the bottom up, last element on array is on top of bin
+                 circle.setAttribute("fill",state[i][j]);
+                 circle.addEventListener('click',function(){highlightBox(i)},false);
+                 canvas.appendChild(circle);
+             };
+         };
+     };
+     function reset(){
+         //re-generate state array from level number
+         generateState(level);
+         drawState();
+     }
+     generateState(level);
+     drawState(); 
+    </script>
+</html>
