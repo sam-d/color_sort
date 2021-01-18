@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="11cm" height="11cm" viewBox="94 199 206 206" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <rect style="fill: none; fill-opacity:0; stroke-width: 4; stroke-linejoin: round; stroke: #000000" x="97" y="202" width="201" height="201" rx="10" ry="10"/>
+  <g>
+    <ellipse style="fill: #800080" cx="148" cy="254" rx="49" ry="49"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke-linejoin: round; stroke: #ffffff" cx="148" cy="254" rx="49" ry="49"/>
+  </g>
+  <g>
+    <ellipse style="fill: #800080" cx="149" cy="350" rx="49" ry="49"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke-linejoin: round; stroke: #ffffff" cx="149" cy="350" rx="49" ry="49"/>
+  </g>
+  <g>
+    <ellipse style="fill: #00ff00" cx="246.4" cy="252.4" rx="49" ry="49"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke-linejoin: round; stroke: #ffffff" cx="246.4" cy="252.4" rx="49" ry="49"/>
+  </g>
+  <g>
+    <ellipse style="fill: #ffa500" cx="247.1" cy="348.1" rx="49" ry="49"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke-linejoin: round; stroke: #ffffff" cx="247.1" cy="348.1" rx="49" ry="49"/>
+  </g>
+</svg>
