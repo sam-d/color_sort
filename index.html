@@ -38,8 +38,9 @@
          level = parseInt(localStorage.getItem('level'));
      }
      numberBallsPerBin=4 //max number of balls each bin can hold
-     numberBins = 7; //total number of bins
-     colors=["red","green","blue","cyan","pink","black","brown"]; //array of all possible colors
+     numberBins = Math.floor(Math.min(12,4+Math.sqrt(level))); //total number of bins; scales with level to make it more difficult
+     binsPerRow = 7; //how many bins per row; start new column if larger
+     colors=["red","green","blue","cyan","pink","black","brown","orange","darkviolet","lightgreen","darkgrey","lime"]; //array of all possible colors
      //get the actual width of the svg element and scale accordingly
      w = window.innerWidth - 50; //canvas.width.baseVal.value;
      //adapt size of balls to screen width
@@ -48,14 +49,15 @@
      }else if (w > 500){
          circleDia = 50;
      }else{
-         circleDia = 20;
+         circleDia = 35;
+         binsPerRow=6;
      }
      padding = 2;
      boxWidth=circleDia+padding;//xoffset;
      yoffset=5;
-     xoffset = (w - (boxWidth * numberBins)) / (numberBins + 2);
+     xoffset = (w - (boxWidth * binsPerRow)) / (binsPerRow + 2);
      boxHeight = circleDia*numberBallsPerBin+numberBallsPerBin*yoffset+2*yoffset;
-     canvas.setAttribute("height",boxHeight+2*yoffset);
+     canvas.setAttribute("height",Math.ceil(numberBins/binsPerRow)*boxHeight+2*yoffset);
      selected=-1; //which bin is selected, -1 if none selected
      //function to generate game state from level number
      //needs to ensure there are numberBallsPerBin of each color and that the levels is solveable
@@ -88,18 +90,26 @@
          let empty=2;
          array=[];
          //generate complete 'won' game state, then shuffle and distribute to state
-         for(let i=0;i<=(bins-empty);i++){
+         for(let i=0;i<bins;i++){
              for(let j=0;j<numberBallsPerBin;j++){
                  array.push(colors[i]);
              }
          }
-         array=shuffleArray(array);
+         //increase number of shuffles with increasing level
+         function repeatN(fun,n,arg){
+             let res = arg;
+             while(n-->0){
+                 res = fun(res);
+             }
+             return res;
+         }
+         array=repeatN(shuffleArray,Math.ceil(Math.sqrt(level)),array); 
          //put into state
          state = []; //clear state
-         for(let i=0;i<=(bins-empty);i++){
+         for(let i=0;i<bins;i++){
              state.push([]);
              for(let j=0;j<numberBallsPerBin;j++){
-                 state[i][j] = array[i*(bins-empty-1)+j];
+                 state[i][j] = array[i*numberBallsPerBin+j];
              }
          }
          //add empty bins
@@ -161,23 +171,31 @@
              canvas.removeChild(canvas.firstChild);
          };
          //then draw the state array onto screen
+         let row=0;
+         let rowPos = -1;
          for(let i=0; i<state.length; i++){
+             rowPos++;
+             if((i+1) % (binsPerRow+1) == 0){
+                 row++; //start new row
+                 rowPos = 0; //start at left again
+             }
              //draw container as simple rect
              let box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-             box.setAttribute("x",i*boxWidth+(i+1)*xoffset);
-             box.setAttribute("y",yoffset);
+             //box.setAttribute("x",i*boxWidth+(i+1)*xoffset);
+             box.setAttribute("x",rowPos*boxWidth+(rowPos+1)*xoffset);
+             box.setAttribute("y",boxHeight*row+yoffset*(row+1));
              box.setAttribute("width",boxWidth);
              box.setAttribute("height",boxHeight);
-             box.setAttribute("stroke",selected == i ? "yellow" : "black");
-             box.setAttribute("strokeWidth","1px");
+             box.setAttribute("stroke",selected == i ? "gold" : "black");
+             box.setAttribute("stroke-width",selected == i ? "5px" : "1px");
              box.setAttribute("fill","transparent");
              box.addEventListener('click',function(){highlightBox(i)},false);
              canvas.appendChild(box);
              for(let j=0;j<state[i].length;j++){
                  let circle =document.createElementNS("http://www.w3.org/2000/svg", "circle");
                  circle.setAttribute("r",circleDia/2);
-                 circle.setAttribute("cx",i*boxWidth+boxWidth/2+(i+1)*xoffset);
-                 circle.setAttribute("cy",boxHeight-(j*circleDia+(j+1)*yoffset+circleDia/2)); //draw from the bottom up, last element on array is on top of bin
+                 circle.setAttribute("cx",rowPos*boxWidth+boxWidth/2+(rowPos+1)*xoffset);
+                 circle.setAttribute("cy",(row+1)*boxHeight-(j*circleDia+(j+1)*yoffset+circleDia/2)); //draw from the bottom up, last element on array is on top of bin
                  circle.setAttribute("fill",state[i][j]);
                  circle.addEventListener('click',function(){highlightBox(i)},false);
                  canvas.appendChild(circle);
