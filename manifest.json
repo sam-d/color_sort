@@ -4,8 +4,8 @@
  "description": "A simple game where colored balls have to be sorted into bins",
  "start_url": "index.html",
  "display": "fullscreen",
- "theme_color": "#B12A34",
- "background_color": "#B12A34",
+ "theme_color": "#ffffff",
+ "background_color": "#ebeff2",
  "icons": [
   {
    "src": "./android-icon-36x36.png",
